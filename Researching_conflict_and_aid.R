@@ -201,59 +201,43 @@ tbl_underrated <- base |>
 if (nrow(tbl_prominent) == 0) stop("No rows for prominent set — check name mappings or years.")
 if (nrow(tbl_underrated) == 0) stop("No rows for underrated set — check name mappings or years.")
 
+# ===== 7) Plot helpers =====
+# lol this part took me forever… kept re-doing titles/colors/widths
+muted_red <- "#d95f5f"   # muted red for prominent conflicts only
+bar_w <- 0.6             # kept playing with width until it looked clean
 
-# ===== 7) Plot helpers (yes, I tinkered a lot here) =====
-# Goal: make Prominent = muted red, Underrated = grey. Keep bars skinny + add "N/A".
-muted_red  <- "#C65A5A"   # this looked closest to the red in my first PNGs
-muted_grey <- "grey40"    # simple neutral for the underrated figure
-bar_w      <- 0.45        # narrower bars felt cleaner on GitHub
-
-# tiny helper: shorten a couple of long country labels for display only
-pretty_label <- function(x){
-  dplyr::recode(
-    x,
-    "West Bank & Gaza" = "W.B. & Gaza",
-    "Democratic Republic of the Congo" = "DRC (beyond M23)",
-    .default = x
-  )
-}
-
-# theme I tweaked after a few tries — minimal but not too bare
+# theme function I tweaked a bunch of times
 theme_clean <- function(){
   ggplot2::theme_minimal(base_family = "Helvetica", base_size = 12) +
     ggplot2::theme(
       panel.grid.major.y = element_blank(),
-      panel.grid.minor   = element_blank(),
-      axis.title         = element_text(size = 11),
-      axis.text.y        = element_text(margin = margin(r = 6), colour = "grey10"),
-      axis.text.x        = element_text(colour = "grey25"),
-      plot.title         = element_text(face = "bold", size = 16, margin = margin(b = 6)),
-      plot.subtitle      = element_text(size = 11, colour = "grey35", margin = margin(b = 10)),
-      plot.caption       = element_text(size = 9, colour = "grey45"),
-      plot.margin        = margin(t = 8, r = 12, b = 8, l = 8)
+      plot.title = element_text(face = "bold", size = 14, margin = margin(b = 6)),
+      axis.title = element_text(size = 11),
+      axis.text.y = element_text(margin = margin(r = 6)),
+      plot.caption = element_text(size = 9, colour = "grey40")
     )
 }
 
-# deaths chart — still keeping bar_col as a parameter
-plot_deaths <- function(df, title_txt = "Deaths (year)", bar_col = muted_red) {
+# deaths chart — finally just hardcoded "2024" so the title wouldn’t get cut off
+plot_deaths <- function(df, bar_col = muted_red) {
   df |>
-    dplyr::mutate(country_lab = pretty_label(as.character(country))) |>  # <- fix here
+    dplyr::mutate(country_lab = pretty_label(as.character(country))) |>
     ggplot(aes(x = deaths, y = country_lab)) +
     geom_col(width = bar_w, fill = bar_col) +
     scale_x_continuous(
       labels = scales::label_number(accuracy = 1, scale_cut = scales::cut_short_scale())
     ) +
-    labs(title = title_txt, x = NULL, y = NULL) +
+    labs(title = "Deaths (2024)", x = NULL, y = NULL) +
     theme_clean()
 }
 
-# aid chart — show "N/A" when aid is missing
-plot_aid <- function(df, title_txt = "Humanitarian aid (USD, year)", bar_col = muted_red) {
+# aid chart — kept the N/A label thing because I liked how it looked
+plot_aid <- function(df, bar_col = muted_red) {
   df2 <- df |>
     dplyr::mutate(
-      country_lab = pretty_label(as.character(country)),  # <- fix here
-      usd_plot    = tidyr::replace_na(usd, 0),
-      show_na     = is.na(usd)
+      country_lab = pretty_label(as.character(country)),
+      usd_plot    = tidyr::replace_na(usd, 0),  # 0-width bar if missing
+      show_na     = is.na(usd)                  # flag where to write "N/A"
     )
   
   ggplot(df2, aes(x = usd_plot, y = country_lab)) +
@@ -267,19 +251,10 @@ plot_aid <- function(df, title_txt = "Humanitarian aid (USD, year)", bar_col = m
       labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1),
       expand = c(0.02, 0)
     ) +
-    labs(title = title_txt, x = NULL, y = NULL) +
+    labs(title = "Humanitarian aid (USD, 2024)", x = NULL, y = NULL) +
     theme_clean()
 }
 
-
-# I like seeing what year the script actually picked — leaving these prints in as receipts.
-cat("Plotting with deaths year:", year_deaths, "and funding year:", year_fund, "\n")
-
-caption_txt <- paste0(
-  "Sources: UCDP/ACLED-style regional aggregates (fatalities by country-year); ",
-  "OCHA FTS (country plans). Years — deaths: ", year_deaths, "; funding: ", year_fund,
-  ". Note: 'N/A' shown where plan-level funding wasn't reported."
-)
 
 # ===== 8) Export figures (prominent = muted red, underrated = grey) =====
 
