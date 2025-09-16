@@ -201,63 +201,109 @@ tbl_underrated <- base |>
 if (nrow(tbl_prominent) == 0) stop("No rows for prominent set — check name mappings or years.")
 if (nrow(tbl_underrated) == 0) stop("No rows for underrated set — check name mappings or years.")
 
-# ===== 7) Plot helpers =====
-# TODO: try a theme that works on dark mode too?
+
+# ===== 7) Plot helpers (yes, I tinkered a lot here) =====
+# Goal: make Prominent = muted red, Underrated = grey. Keep bars skinny + add "N/A".
+muted_red  <- "#C65A5A"   # this looked closest to the red in my first PNGs
+muted_grey <- "grey40"    # simple neutral for the underrated figure
+bar_w      <- 0.45        # narrower bars felt cleaner on GitHub
+
+# tiny helper: shorten a couple of long country labels for display only
+pretty_label <- function(x){
+  dplyr::recode(
+    x,
+    "West Bank & Gaza" = "W.B. & Gaza",
+    "Democratic Republic of the Congo" = "DRC (beyond M23)",
+    .default = x
+  )
+}
+
+# theme I tweaked after a few tries — minimal but not too bare
 theme_clean <- function(){
   ggplot2::theme_minimal(base_family = "Helvetica", base_size = 12) +
     ggplot2::theme(
       panel.grid.major.y = element_blank(),
-      plot.title = element_text(face = "bold", size = 16, margin = margin(b = 6)),
-      plot.subtitle = element_text(size = 11, margin = margin(b = 10)),
-      axis.title = element_text(size = 11),
-      axis.text.y = element_text(margin = margin(r = 6)),
-      plot.caption = element_text(size = 9, colour = "grey40")
+      panel.grid.minor   = element_blank(),
+      axis.title         = element_text(size = 11),
+      axis.text.y        = element_text(margin = margin(r = 6), colour = "grey10"),
+      axis.text.x        = element_text(colour = "grey25"),
+      plot.title         = element_text(face = "bold", size = 16, margin = margin(b = 6)),
+      plot.subtitle      = element_text(size = 11, colour = "grey35", margin = margin(b = 10)),
+      plot.caption       = element_text(size = 9, colour = "grey45"),
+      plot.margin        = margin(t = 8, r = 12, b = 8, l = 8)
     )
 }
 
-plot_deaths <- function(df){
-  ggplot(df, aes(x = deaths, y = country)) +
-    geom_col() +
-    # label_number_si() is defunct; using short-scale via cut_short_scale()
-    scale_x_continuous(labels = label_number(accuracy = 1, scale_cut = cut_short_scale())) +
-    labs(title = "Deaths (year)", x = NULL, y = NULL) +
+# deaths chart — still keeping bar_col as a parameter
+plot_deaths <- function(df, title_txt = "Deaths (year)", bar_col = muted_red) {
+  df |>
+    dplyr::mutate(country_lab = pretty_label(as.character(country))) |>  # <- fix here
+    ggplot(aes(x = deaths, y = country_lab)) +
+    geom_col(width = bar_w, fill = bar_col) +
+    scale_x_continuous(
+      labels = scales::label_number(accuracy = 1, scale_cut = scales::cut_short_scale())
+    ) +
+    labs(title = title_txt, x = NULL, y = NULL) +
     theme_clean()
 }
 
-plot_aid <- function(df){
-  # Visual-only: show 0-length bars when usd is NA so the country still appears.
-  df <- df |> dplyr::mutate(usd_plot = tidyr::replace_na(usd, 0))
-  ggplot(df, aes(x = usd_plot, y = country)) +
-    geom_col() +
-    scale_x_continuous(labels = label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1)) +
-    labs(title = "Humanitarian aid (USD, year)", x = NULL, y = NULL) +
+# aid chart — show "N/A" when aid is missing
+plot_aid <- function(df, title_txt = "Humanitarian aid (USD, year)", bar_col = muted_red) {
+  df2 <- df |>
+    dplyr::mutate(
+      country_lab = pretty_label(as.character(country)),  # <- fix here
+      usd_plot    = tidyr::replace_na(usd, 0),
+      show_na     = is.na(usd)
+    )
+  
+  ggplot(df2, aes(x = usd_plot, y = country_lab)) +
+    geom_col(width = bar_w, fill = bar_col) +
+    geom_text(
+      data  = dplyr::filter(df2, show_na),
+      aes(x = 0, y = country_lab, label = "N/A"),
+      hjust = -0.15, vjust = 0.5, size = 3.4, colour = "grey40"
+    ) +
+    scale_x_continuous(
+      labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1),
+      expand = c(0.02, 0)
+    ) +
+    labs(title = title_txt, x = NULL, y = NULL) +
     theme_clean()
 }
+
+
+# I like seeing what year the script actually picked — leaving these prints in as receipts.
+cat("Plotting with deaths year:", year_deaths, "and funding year:", year_fund, "\n")
 
 caption_txt <- paste0(
-  "Sources: Regional event aggregates (fatalities by country-year); OCHA FTS (country plans). ",
-  "Years — deaths: ", year_deaths, "; funding: ", year_fund, ". ",
-  "Note: Funding bars show 0 when plan-level funding was not reported."
+  "Sources: UCDP/ACLED-style regional aggregates (fatalities by country-year); ",
+  "OCHA FTS (country plans). Years — deaths: ", year_deaths, "; funding: ", year_fund,
+  ". Note: 'N/A' shown where plan-level funding wasn't reported."
 )
 
-# ===== 8) Export figures =====
-# NOTE: I tried facetting first, but the side-by-side patchwork makes it easier to scan.
-p1 <- plot_deaths(tbl_prominent) + plot_aid(tbl_prominent) +
+# ===== 8) Export figures (prominent = muted red, underrated = grey) =====
+
+# Prominent — keep the red focus like in my original PNG
+p1 <- plot_deaths(tbl_prominent, "Deaths (", muted_red) +
+  plot_aid(   tbl_prominent, "Humanitarian aid (USD, ", muted_red) +
   patchwork::plot_annotation(
-    title = paste0("Prominent Conflicts: Impact vs Humanitarian Funding (", year_deaths, "/", year_fund, ")"),
-    theme = theme_clean(),
+    title   = paste0("Prominent Conflicts: Impact vs Humanitarian Funding (", year_deaths, ")"),
+    theme   = theme_clean(),
     caption = caption_txt
   )
 ggsave("prominent_conflicts.png", p1, width = 12, height = 8, dpi = 300)
 
-p2 <- plot_deaths(tbl_underrated) + plot_aid(tbl_underrated) +
+# Underrated — keep it neutral
+p2 <- plot_deaths(tbl_underrated, "Deaths (", muted_grey) +
+  plot_aid(   tbl_underrated, "Humanitarian aid (USD, ", muted_grey) +
   patchwork::plot_annotation(
-    title = paste0("Underrated Conflicts: Deaths vs Humanitarian Aid (", year_deaths, "/", year_fund, ")"),
+    title    = paste0("Underrated Conflicts: Deaths vs Humanitarian Aid (", year_deaths, ")"),
     subtitle = "Ethiopia, Cameroon, Somalia, DRC, Mali",
-    theme = theme_clean(),
-    caption = caption_txt
+    theme    = theme_clean(),
+    caption  = caption_txt
   )
 ggsave("underrated_conflicts.png", p2, width = 12, height = 8, dpi = 300)
+
 
 # ===== 9) Reproducibility (basic) =====
 # I’m not using renv yet — just dumping session info so I can re-run this later on the same machine.
