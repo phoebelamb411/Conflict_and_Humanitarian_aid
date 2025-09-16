@@ -1,291 +1,225 @@
 getwd()
 
 # ------------------------------------------------------------
-# Conflict & Humanitarian Aid Analysis (2024)
+# Conflict & Humanitarian Aid (recreate LinkedIn charts 1:1)
 # Author: Phoebe Lamb  |  MSBA @ Georgetown
 # Repo: https://github.com/phoebelamb411/Conflict_and_Humanitarian_aid
-# Notes: I rebuilt what I had last week. Lots of trial & error kept in.
 # Outputs: prominent_conflicts.png, underrated_conflicts.png, session_info.txt
+# Notes: keep it simple (CSV -> clean -> plot). trial & error left in comments.
 # ------------------------------------------------------------
 
-# 1) libraries (I just load the usual tidy stack + patchwork)
-required <- c("tidyverse","readxl","janitor","scales","patchwork")
-new <- setdiff(required, rownames(installed.packages()))
+# ===== 1) Libraries (install if missing) =====
+required <- c("tidyverse", "janitor", "scales", "patchwork")
+new <- required[!(required %in% installed.packages()[, "Package"])]
 if (length(new)) install.packages(new)
 invisible(lapply(required, library, character.only = TRUE))
 
-# 2) files expected in project root
-path_funding <- "ocha_funding.csv"
-paths_xlsx <- c(
-  "Africa_aggregated_data_up_to-2025-08-30.xlsx",
-  "Middle-East_aggregated_data_up_to-2025-08-30.xlsx",
-  "Europe-Central-Asia_aggregated_data_up_to-2025-08-23.xlsx"
+# ===== 2) File paths (CSV only to match the public charts) =====
+path_deaths  <- "ucdp_conflict_deaths.csv"  # has territory_name, year, bd_best
+path_funding <- "ocha_funding.csv"          # has name, year, funding
+stopifnot(file.exists(path_deaths), file.exists(path_funding))
+
+# ===== 3) Countries & order exactly like the LinkedIn version =====
+prominent <- c("Syria", "Sudan", "Israel", "West Bank & Gaza", "Russia", "Ukraine")
+underrated <- c(
+  "DRC (beyond M23)",
+  "Mali (insurgency)",
+  "Ethiopia (post-Tigray & regional)",
+  "Somalia (Al-Shabab insurgency)",
+  "Cameroon / Lake Chad belt"
 )
-stopifnot(file.exists(path_funding))
 
-# 3) “who’s in which bucket” and a very plain name normalizer
-prominent  <- c("Ukraine","Russia","Israel","West Bank & Gaza","Sudan","Syria")
-underrated <- c("Ethiopia","Somalia","Democratic Republic of the Congo","Mali","Cameroon")
-
+# ===== 4) Name helpers (I tried a few mappings, kept the ones that mattered) =====
 normalize_country <- function(x){
-  x <- stringr::str_trim(x)
+  x <- stringr::str_trim(as.character(x))
   x <- stringr::str_replace_all(x, "\\s+", " ")
   dplyr::case_when(
-    x %in% c("Ukraine","Ukraine (Govt)") ~ "Ukraine",
-    x %in% c("Russia","Russian Federation") ~ "Russia",
-    x %in% c("Israel","State of Israel") ~ "Israel",
-    x %in% c("Palestine","Palestine, State of","State of Palestine","Palestinian Territory",
-             "West Bank and Gaza","West Bank & Gaza","Gaza Strip","occupied Palestinian territory",
-             "OPT","oPt","oPt (occupied Palestinian territory)") ~ "West Bank & Gaza",
+    x %in% c("Ukraine") ~ "Ukraine",
+    x %in% c("Russia", "Russian Federation") ~ "Russia",
+    x %in% c("Israel", "State of Israel") ~ "Israel",
+    x %in% c("Palestine", "Palestine, State of", "State of Palestine",
+             "Palestinian Territory", "West Bank and Gaza", "West Bank & Gaza",
+             "Gaza Strip", "occupied Palestinian territory", "OPT", "oPt") ~ "West Bank & Gaza",
     x %in% c("Sudan","Republic of the Sudan") ~ "Sudan",
     x %in% c("Syria","Syrian Arab Republic") ~ "Syria",
-    x %in% c("Ethiopia","Federal Democratic Republic of Ethiopia") ~ "Ethiopia",
-    x %in% c("Somalia","Federal Republic of Somalia") ~ "Somalia",
-    x %in% c("Congo, Dem. Rep.","DR Congo","DRC","Congo (DRC)",
-             "Democratic Republic of the Congo","The Democratic Republic of the Congo") ~
-      "Democratic Republic of the Congo",
-    x %in% c("Mali","Republic of Mali") ~ "Mali",
-    x %in% c("Cameroon","Republic of Cameroon") ~ "Cameroon",
     TRUE ~ x
   )
 }
 
-pick_year <- function(y, prefer = 2024){
-  yy <- suppressWarnings(as.integer(y)); yy <- yy[!is.na(yy)]
-  if (!length(yy)) stop("No valid years found.")
-  if (prefer %in% yy) prefer else max(yy)
-}
-
-# 4) deaths from regional weekly Excel (ACLED-style) → country-year totals
-read_agg <- function(path){
-  if (!file.exists(path)) return(tibble())
-  df <- suppressMessages(readxl::read_excel(path)) |> janitor::clean_names()
-  if (!("country" %in% names(df)) || !("fatalities" %in% names(df))) {
-    message("Skipping ", path, " — missing 'country' or 'fatalities'.")
-    return(tibble())
-  }
-  if (!("year" %in% names(df))) {
-    if ("week" %in% names(df)) {
-      df <- df |> mutate(week_chr = as.character(week),
-                         year = suppressWarnings(as.integer(substr(week_chr, 1, 4))))
-    } else {
-      message("Skipping ", path, " — no 'year' or 'week'.")
-      return(tibble())
-    }
-  }
-  df |>
-    transmute(
-      country = normalize_country(as.character(country)),
-      year    = suppressWarnings(as.integer(year)),
-      deaths  = suppressWarnings(as.numeric(fatalities))
-    ) |>
-    filter(!is.na(country), !is.na(year), !is.na(deaths))
-}
-deaths_all <- purrr::map_dfr(paths_xlsx, read_agg)
-stopifnot(nrow(deaths_all) > 0)
-year_deaths <- pick_year(deaths_all$year, 2024)
-deaths <- deaths_all |>
-  filter(year == year_deaths) |>
-  group_by(country) |>
-  summarise(deaths = sum(deaths, na.rm = TRUE), .groups = "drop")
-
-# 5) OCHA FTS plan funding → country totals, with country scraped from plan titles
-fund_raw <- readr::read_csv(path_funding, show_col_types = FALSE) |> janitor::clean_names()
-stopifnot(all(c("name","year","funding") %in% names(fund_raw)))
-
-country_from_plan <- function(x){
-  x <- stringr::str_squish(x)
-  x <- stringr::str_replace_all(x, "\\([^\\)]*\\)", "")
-  x <- stringr::str_remove(x, "\\bHumanitarian Needs and Response Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bHumanitarian Response Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bRegional Refugee and Resilience Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bRegional Refugee Response Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bSituation Regional Refugee Response Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bFlash Appeal\\b.*$")
-  x <- stringr::str_remove(x, "\\bJoint Response Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bResponse Plan\\b.*$")
-  x <- stringr::str_remove(x, "\\bPlan de Réponse Humanitaire\\b.*$")
-  x <- stringr::str_remove(x, "\\bBesoins Humanitaires et Plan de Réponse\\b.*$")
-  x <- stringr::str_remove(x, "\\bPlan de Réponse\\b.*$")
-  x <- stringr::str_remove(x, "\\b\\d{4}(\\s*-\\s*\\d{4})?$")
-  x <- stringr::str_squish(x)
-  dplyr::recode(x,
-                "République Démocratique du Congo" = "Democratic Republic of the Congo",
-                "République Centrafricaine"        = "Central African Republic",
-                "Haïti"                            = "Haiti",
-                "Tchad"                            = "Chad",
-                .default = x
-  )
-}
-year_fund <- pick_year(fund_raw$year, 2024)
-fund <- fund_raw |>
-  mutate(
-    country_clean = country_from_plan(name),
-    country       = normalize_country(country_clean),
-    funding_chr   = as.character(funding),
-    # one row in my export had '#value+funding+total+usd' — just drop it
-    funding_chr   = ifelse(grepl("^#value", funding_chr, ignore.case = TRUE), NA, funding_chr),
-    funding_num   = suppressWarnings(readr::parse_number(funding_chr))
-  ) |>
-  filter(year == year_fund, !is.na(country)) |>
-  group_by(country) |>
-  summarise(usd = sum(funding_num, na.rm = TRUE), .groups = "drop") |>
-  mutate(usd = ifelse(is.finite(usd) & usd > 0, usd, NA_real_))
-
-# 6) join + build the two tables I actually plot
-base <- deaths |>
-  full_join(fund, by = "country") |>
-  mutate(deaths = tidyr::replace_na(deaths, 0))
-
-# exact orders to match my original PNGs (top → bottom)
-prominent_order  <- c("Syria","Sudan","Israel","West Bank & Gaza","Russia","Ukraine")
-underrated_order <- c("Democratic Republic of the Congo","Mali","Ethiopia","Somalia","Cameroon")
-
-tbl_prominent <- base |>
-  filter(country %in% prominent_order) |>
-  mutate(country = factor(country, levels = rev(prominent_order)))  # rev() = first appears on TOP
-
-tbl_underrated <- base |>
-  filter(country %in% underrated_order) |>
-  mutate(country = factor(country, levels = rev(underrated_order)))
-
-stopifnot(nrow(tbl_prominent) == 6, nrow(tbl_underrated) == 5)
-
-# ===== 7) Plotting helpers (patched to avoid factor/.default error) =====
-
-# short labels used on PROMINENT plots
-pretty_label <- function(x){
-  x_chr <- as.character(x)
-  dplyr::recode(
-    x_chr,
-    "West Bank & Gaza" = "W.B. & Gaza",
-    .default = x_chr
-  )
-}
-
-# long labels used on UNDERRATED plots
+# pretty axis labels I used in the LinkedIn plots for the underrated set
 pretty_label_underrated <- function(x){
-  x_chr <- as.character(x)
+  x <- as.character(x)
   dplyr::recode(
-    x_chr,
+    x,
     "Democratic Republic of the Congo" = "DRC (beyond M23)",
     "Mali"      = "Mali (insurgency)",
     "Ethiopia"  = "Ethiopia (post-Tigray & regional)",
     "Somalia"   = "Somalia (Al-Shabab insurgency)",
     "Cameroon"  = "Cameroon / Lake Chad belt",
-    .default = x_chr
+    .default = x
   )
 }
 
-muted_red <- "#d95f5f"  # only for PROMINENT
-bar_w     <- 0.5
+# ===== 5) Pick year (prefer 2024) =====
+pick_year <- function(y, prefer = 2024){
+  yy <- suppressWarnings(as.integer(y)); yy <- yy[!is.na(yy)]
+  if (length(yy) == 0) stop("No valid years found.")
+  if (prefer %in% yy) prefer else max(yy)
+}
+
+# ===== 6) UCDP deaths (CSV) =====
+deaths_raw <- readr::read_csv(path_deaths, show_col_types = FALSE) |> janitor::clean_names()
+stopifnot(all(c("territory_name","year","bd_best") %in% names(deaths_raw)))
+
+year_deaths <- pick_year(deaths_raw$year, 2024)
+
+deaths <- deaths_raw |>
+  dplyr::transmute(
+    country = normalize_country(territory_name),
+    year = year,
+    deaths = suppressWarnings(as.numeric(bd_best))
+  ) |>
+  dplyr::filter(year == year_deaths, !is.na(country)) |>
+  dplyr::group_by(country) |>
+  dplyr::summarise(deaths = sum(deaths, na.rm = TRUE), .groups = "drop")
+
+# ===== 7) OCHA funding (CSV) =====
+fund_raw <- readr::read_csv(path_funding, show_col_types = FALSE) |> janitor::clean_names()
+stopifnot(all(c("name","year","funding") %in% names(fund_raw)))
+
+# strip plan text to get a country-ish string, then normalize
+country_from_plan <- function(x){
+  x <- stringr::str_squish(as.character(x))
+  x <- stringr::str_replace_all(x, "\\([^\\)]*\\)", "") # remove (..)
+  # EN
+  x <- stringr::str_remove(x, "\\bHumanitarian Needs and Response Plan\\b.*$")
+  x <- stringr::str_remove(x, "\\bHumanitarian Response Plan\\b.*$")
+  x <- stringr::str_remove(x, "\\bRegional Refugee and Resilience Plan\\b.*$")
+  x <- stringr::str_remove(x, "\\bRegional Refugee Response Plan\\b.*$")
+  x <- stringr::str_remove(x, "\\bFlash Appeal\\b.*$")
+  x <- stringr::str_remove(x, "\\bJoint Response Plan\\b.*$")
+  x <- stringr::str_remove(x, "\\bResponse Plan\\b.*$")
+  # FR
+  x <- stringr::str_remove(x, "\\bPlan de Réponse Humanitaire\\b.*$")
+  x <- stringr::str_remove(x, "\\bBesoins Humanitaires et Plan de Réponse\\b.*$")
+  x <- stringr::str_remove(x, "\\bPlan de Réponse\\b.*$")
+  # year tails
+  x <- stringr::str_remove(x, "\\b\\d{4}(\\s*-\\s*\\d{4})?$")
+  x <- stringr::str_squish(x)
+  # French->English country name tweaks (just the ones I hit)
+  dplyr::recode(
+    x,
+    "République Démocratique du Congo" = "Democratic Republic of the Congo",
+    "République Centrafricaine"        = "Central African Republic",
+    "Haïti"                            = "Haiti",
+    "Tchad"                            = "Chad",
+    .default = x
+  )
+}
+
+year_fund <- pick_year(fund_raw$year, 2024)
+
+fund <- fund_raw |>
+  dplyr::mutate(
+    country_clean = country_from_plan(name),
+    country = normalize_country(country_clean),
+    funding_chr = as.character(funding),
+    funding_chr = ifelse(grepl("^#value", funding_chr, ignore.case = TRUE), NA, funding_chr),
+    usd = suppressWarnings(readr::parse_number(funding_chr))
+  ) |>
+  dplyr::filter(year == year_fund) |>
+  dplyr::group_by(country) |>
+  dplyr::summarise(usd = sum(usd, na.rm = TRUE), .groups = "drop") |>
+  dplyr::mutate(usd = dplyr::if_else(usd == 0, NA_real_, usd)) # keep NA to show "N/A" text
+
+# ===== 8) Merge for the two views =====
+base <- deaths |>
+  dplyr::full_join(fund, by = "country") |>
+  dplyr::mutate(deaths = tidyr::replace_na(deaths, 0))
+
+# Prominent (fixed order)
+tbl_prominent <- base |>
+  dplyr::filter(country %in% prominent) |>
+  dplyr::mutate(country = factor(country, levels = prominent))
+
+# Underrated (map labels + fixed order)
+tbl_underrated <- base |>
+  dplyr::filter(country %in% c("Democratic Republic of the Congo","Mali","Ethiopia","Somalia","Cameroon")) |>
+  dplyr::mutate(
+    country_lab = pretty_label_underrated(country),
+    country_lab = factor(country_lab, levels = underrated)
+  )
+
+# ===== 9) Plot helpers (kept the “muted red, narrow bars, N/A text” look) =====
+muted_red <- "#d95f02"  # the soft red you used publicly
+bar_w     <- 0.5        # narrower bars like your screenshot
 
 theme_clean <- function(){
   ggplot2::theme_minimal(base_family = "Helvetica", base_size = 12) +
     ggplot2::theme(
       panel.grid.major.y = element_blank(),
-      plot.title = element_text(face = "bold", size = 14, margin = margin(b = 6)),
-      plot.title.position = "plot",
       axis.title = element_text(size = 11),
-      axis.text.y = element_text(margin = margin(r = 6)),
-      plot.caption = element_text(size = 9, colour = "grey40"),
-      plot.margin = margin(t = 10, r = 24, b = 10, l = 14)
+      axis.text.y = element_text(margin = margin(r = 6))
     )
 }
 
-# PROMINENT deaths (muted red)
-plot_deaths <- function(df, bar_col = muted_red){
-  df |>
-    dplyr::mutate(country_lab = pretty_label(country)) |>
-    ggplot(aes(x = deaths, y = country_lab)) +
-    geom_col(width = bar_w, fill = bar_col) +
-    scale_x_continuous(labels = scales::label_number(accuracy = 1, scale_cut = scales::cut_short_scale())) +
-    labs(title = "Deaths", x = NULL, y = NULL) +
-    coord_cartesian(clip = "off") +
+# deaths (color configurable so we can reuse for prominent/underrated)
+plot_deaths <- function(df, y_var, title_txt, fill_col){
+  ggplot(df, aes(x = deaths, y = !!y_var)) +
+    geom_col(width = bar_w, fill = fill_col) +
+    scale_x_continuous(labels = label_number(accuracy = 1, scale_cut = cut_short_scale())) +
+    labs(title = title_txt, x = NULL, y = NULL) +
     theme_clean()
 }
 
-# PROMINENT aid (muted red) + "N/A" labels
-plot_aid <- function(df, bar_col = muted_red){
+# aid (shows N/A text for missing bars)
+plot_aid <- function(df, y_var, title_txt, fill_col){
   df2 <- df |>
-    dplyr::mutate(
-      country_lab = pretty_label(country),
-      usd_plot    = tidyr::replace_na(usd, 0),
-      show_na     = is.na(usd)
-    )
-  
-  ggplot(df2, aes(x = usd_plot, y = country_lab)) +
-    geom_col(width = bar_w, fill = bar_col) +
-    geom_text(
-      data  = dplyr::filter(df2, show_na),
-      aes(x = 0, y = country_lab, label = "N/A"),
-      hjust = -0.15, vjust = 0.5, size = 3.4, colour = "grey40"
-    ) +
-    scale_x_continuous(
-      labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1),
-      expand = c(0.04, 0)
-    ) +
-    labs(title = "Humanitarian aid (USD)", x = NULL, y = NULL) +
-    coord_cartesian(clip = "off") +
-    theme_clean()
-}
-
-# UNDERRATED deaths (gray)
-plot_deaths_und <- function(df){
-  df |>
-    dplyr::mutate(country_lab = pretty_label_underrated(country)) |>
-    ggplot(aes(x = deaths, y = country_lab)) +
-    geom_col(width = bar_w, fill = "grey40") +
-    scale_x_continuous(labels = scales::label_number(accuracy = 1, scale_cut = scales::cut_short_scale())) +
-    labs(title = "Conflict deaths", x = NULL, y = NULL) +
-    coord_cartesian(clip = "off") +
-    theme_clean()
-}
-
-# UNDERRATED aid (gray) + "N/A"
-plot_aid_und <- function(df){
-  df2 <- df |>
-    dplyr::mutate(
-      country_lab = pretty_label_underrated(country),
-      usd_plot    = tidyr::replace_na(usd, 0),
-      show_na     = is.na(usd)
-    )
-  
-  ggplot(df2, aes(x = usd_plot, y = country_lab)) +
-    geom_col(width = bar_w, fill = "grey40") +
+    dplyr::mutate(usd_plot = tidyr::replace_na(usd, 0),
+                  show_na = is.na(usd))
+  ggplot(df2, aes(x = usd_plot, y = !!y_var)) +
+    geom_col(width = bar_w, fill = fill_col) +
     geom_text(
       data = dplyr::filter(df2, show_na),
-      aes(x = 0, y = country_lab, label = "N/A"),
+      aes(x = 0, y = !!y_var, label = "N/A"),
       hjust = -0.15, vjust = 0.5, size = 3.4, colour = "grey40"
     ) +
     scale_x_continuous(
-      labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1),
-      expand = c(0.04, 0)
+      labels = label_dollar(scale = 1e-9, suffix = "B", accuracy = 0.1),
+      expand = c(0.04, 0)  # small left pad so "N/A" isn’t clipped
     ) +
-    labs(title = "Humanitarian aid (USD)", x = NULL, y = NULL) +
-    coord_cartesian(clip = "off") +
+    labs(title = title_txt, x = NULL, y = NULL) +
     theme_clean()
 }
 
-# 8) make + save the two figures (prominent = muted red; underrated = gray)
-p1 <- plot_deaths(tbl_prominent, bar_col = muted_red) +
-  plot_aid   (tbl_prominent, bar_col = muted_red) +
-  patchwork::plot_annotation(
-    title   = paste0("Prominent Conflicts: Impact vs Humanitarian Funding (", year_deaths, "/", year_fund, ")"),
-    caption = caption_txt,
-    theme   = theme_clean()
-  )
-ggsave("prominent_conflicts.png", p1, width = 12, height = 8, dpi = 300)
+caption_txt <- "Sources: UCDP (bd_best), OCHA FTS (country plans). Years — deaths: 2024; funding: 2024. ‘N/A’ shown where plan-level funding wasn’t reported."
 
-p2 <- plot_deaths_und(tbl_underrated) +
-  plot_aid_und  (tbl_underrated) +
+# ===== 10) Prominent figure (muted red) =====
+p1_left  <- plot_deaths(tbl_prominent, rlang::sym("country"), "Deaths (2024)", muted_red)
+p1_right <- plot_aid(   tbl_prominent, rlang::sym("country"), "Humanitarian aid (USD, 2024)", muted_red)
+
+p1 <- p1_left + p1_right +
   patchwork::plot_annotation(
-    title    = paste0("Underrated Conflicts: Deaths vs Humanitarian Aid (", year_deaths, "/", year_fund, ")"),
+    title = "Prominent Conflicts: Impact vs Humanitarian Funding (2024/2024)",
+    theme = ggplot2::theme(plot.title = element_text(face = "bold", size = 14)),
+    caption = caption_txt
+  )
+ggsave("prominent_conflicts.png", p1, width = 13, height = 8, dpi = 300)
+
+# ===== 11) Underrated figure (neutral grey) =====
+grey_bar <- "grey25"
+
+p2_left  <- plot_deaths(tbl_underrated, rlang::sym("country_lab"), "Conflict deaths (2024)", grey_bar)
+p2_right <- plot_aid(   tbl_underrated, rlang::sym("country_lab"), "Humanitarian aid (USD, 2024)", grey_bar)
+
+p2 <- p2_left + p2_right +
+  patchwork::plot_annotation(
+    title = "Underrated Conflicts: Deaths vs Humanitarian Aid (2024)",
     subtitle = "Ethiopia, Cameroon, Somalia, DRC, Mali",
-    caption  = caption_txt,
-    theme    = theme_clean()
+    theme = ggplot2::theme(plot.title = element_text(face = "bold", size = 14)),
+    caption = caption_txt
   )
-ggsave("underrated_conflicts.png", p2, width = 12, height = 8, dpi = 300)
+ggsave("underrated_conflicts.png", p2, width = 13, height = 8, dpi = 300)
 
-# 9) I always dump session info so I can say “yep, it ran on my machine”
+# ===== 12) Reproducibility =====
 writeLines(capture.output(sessionInfo()), "session_info.txt")
