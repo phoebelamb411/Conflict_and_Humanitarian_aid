@@ -1,5 +1,8 @@
 # Conflict_and_Humanitarian_aid
 Analysis of conflict deaths vs humanitarian aid (prominent vs underrated conflicts) using UCDP, OCHA, and World Bank data.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # Conflict and Humanitarian Aid Analysis (2024)
 
 This project explores the relationship between reported conflict deaths and humanitarian aid distribution.  
