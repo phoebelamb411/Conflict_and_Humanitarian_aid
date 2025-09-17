@@ -50,9 +50,6 @@ The goal is to highlight how **humanitarian responses often mirror global attent
 If you open the repo, you’ll see multiple attempts and warnings in the R script — that’s intentional, it reflects the real trial-and-error process I went through. This project wasn’t built in one clean run.  
 I started by just filtering for the largest conflicts (100k+ deaths), then shifted focus to current events, and eventually added the “underrated” group because I wanted to highlight overlooked crises.  
 
-It took many 8+ hour days and plenty of trial-and-error to clean messy humanitarian data.  
-The warnings and multiple versions of PNGs in this repo are intentional — they show the real process of figuring it out.  
-
 In the end, I produced two charts that highlight how humanitarian responses often mirror global attention more than actual human suffering.
 
 ---
