@@ -5,317 +5,319 @@
 
 ---
 
-## 🎯 Research Question
+## 🎯 The Question
 
-**Do humanitarian aid allocations align with conflict severity, or do they follow media attention?**
-
-This analysis compares **conflict deaths** to **humanitarian funding** across two groups:
-- **Prominent conflicts** (high media coverage): Ukraine, Gaza, Sudan, Syria
-- **Underrated conflicts** (low media coverage): Ethiopia, Mali, Somalia, DRC
+**When conflicts claim thousands of lives, does humanitarian aid flow to where it's needed most—or to where cameras are pointed?**
 
 ---
 
-## 🔍 Key Finding
+## 💡 The Answer (In Two Charts)
 
-**Humanitarian responses often mirror global attention more than actual need.**
-
-When conflicts dominate headlines (Ukraine, Gaza), aid follows. But devastating crises with lower media visibility—Ethiopia's intercommunal violence, Mali's insurgencies, Somalia's persistent conflict—receive far less funding despite massive human cost.
-
----
-
-## 📊 Visualizations
-
-### The Full Picture: Deaths vs Funding Landscape
+### Where Are People Dying?
 
 <p align="center">
-  <img src="figures/scatter_deaths_vs_funding_2024.png" alt="Deaths vs Funding Scatter Plot" width="850"/>
+  <img src="figures/top10_deaths_2024.png" alt="Top 10 Deadliest Conflicts" width="800"/>
 </p>
 
-**What this shows:** Each dot represents a country in crisis. The dashed line shows the expected relationship between deaths and funding. Countries **above the line** receive more funding per death than average; countries **below** receive less. Notice how prominent conflicts (Ukraine, West Bank & Gaza, Syria) cluster above the trend, while many African conflicts fall below.
+**2024's deadliest conflicts:** Ukraine leads with over 73,000 deaths. But notice the conflicts that follow—**Nigeria** (9,600 deaths), **Burkina Faso** (7,500), **Ethiopia** (7,500), **Somalia** (5,500). These rarely make international headlines, yet thousands die each year.
 
 ---
 
-### Who Bears the Heaviest Toll?
+### Where Is Humanitarian Aid Going?
 
 <p align="center">
-  <img src="figures/top10_deaths_2024.png" alt="Top 10 by Deaths" width="850"/>
+  <img src="figures/top10_funding_2024.png" alt="Top 10 Funded Countries" width="800"/>
 </p>
 
-**The deadliest conflicts in 2024:** Ukraine leads in reported deaths, followed by West Bank & Gaza and Sudan. But look at Nigeria, Burkina Faso, Ethiopia, and DRC—these conflicts claim thousands of lives yet rarely make international headlines.
+**Where the money flows:** Syria, West Bank & Gaza, and Ukraine receive the most funding. Compare this to the deaths chart above—**where are Nigeria and Burkina Faso?** They're in the top 5 for deaths but barely crack the top 10 for funding.
+
+**This is the attention gap.**
 
 ---
 
-### Where Does the Money Go?
+## 📊 The Stark Reality: Funding Per Death
 
 <p align="center">
-  <img src="figures/top10_funding_2024.png" alt="Top 10 by Funding" width="850"/>
+  <img src="figures/funding_per_death_groups_2024.png" alt="Funding per Death Comparison" width="800"/>
 </p>
 
-**Humanitarian funding allocation:** Syria, West Bank & Gaza, and Ukraine receive the most funding. Compare this to the deaths chart above—do you see the gap? Countries like Nigeria and Burkina Faso have high death tolls but don't appear in the top 10 for funding.
+**The numbers don't lie:**
+- **Syria**: ~$408,000 per death in humanitarian funding
+- **West Bank & Gaza**: ~$97,000 per death  
+- **Sudan**: ~$120,000 per death
+- **Ukraine**: ~$33,000 per death
+
+Compare that to:
+- **Somalia**: ~$162,000 per death
+- **Ethiopia**: ~$133,000 per death  
+- **Cameroon**: ~$90,000 per death
+
+**Why does this happen?** When conflicts dominate headlines (Ukraine, Gaza, Syria), humanitarian dollars follow. When they don't—even with comparable death tolls—populations suffer with far less support.
+
+This isn't about whether any crisis deserves more or less aid. **It's about revealing a systematic pattern: media attention shapes resource allocation more than actual human cost.**
 
 ---
 
-### The Funding Gap: Prominent vs Underrated
+## 🔍 The Full Picture
 
 <p align="center">
-  <img src="figures/funding_per_death_groups_2024.png" alt="Funding per Death" width="850"/>
+  <img src="figures/scatter_deaths_vs_funding_2024.png" alt="Deaths vs Funding Relationship" width="800"/>
 </p>
 
-**The stark reality:** This chart reveals the disparity. Syria receives over **$400,000 per death** in humanitarian funding. Meanwhile, Cameroon, Ethiopia, and Somalia—with thousands of deaths—receive a fraction of that amount per person lost.
+**For the data-minded:** This log-log scatter plot shows each country as a dot. The dashed line represents the expected relationship between deaths and funding. 
 
-**Why it matters:** This isn't about whether any crisis deserves more or less. It's about revealing systematic patterns: when conflicts make headlines, resources follow. When they don't, populations suffer with far less support.
+Countries **above the line** receive more funding per death than average. Countries **below** receive less. Notice how prominent conflicts (Ukraine, West Bank & Gaza, Syria) cluster above the trend, while many African conflicts fall below.
 
----
-
-## 💡 What the Data Shows
-
-### **Prominent Conflicts (2024)**
-- **Countries analyzed**: Ukraine, Russia, Israel, West Bank & Gaza, Sudan, Syria
-- **Pattern**: High media visibility correlates with substantial humanitarian funding
-- **Funding per death**: Significantly higher than underrated conflicts
-
-### **Underrated Conflicts (2024)**
-- **Countries analyzed**: Ethiopia, Cameroon, Somalia, Democratic Republic of the Congo, Mali
-- **Pattern**: Lower media coverage despite substantial death tolls
-- **Funding per death**: Fraction of what prominent conflicts receive
-
-**The Gap:** Prominent conflicts receive substantially more funding per death than underrated conflicts—revealing how media attention shapes humanitarian resource allocation.
+**Translation:** Deaths alone don't predict funding. Something else does—and that something is often media coverage.
 
 ---
 
-## 🛠️ Methodology
+## 📈 By The Numbers
+
+### **Prominent Conflicts** (High Media Coverage)
+**Countries analyzed:** Ukraine, Russia, Israel, West Bank & Gaza, Sudan, Syria
+
+| Metric | Value |
+|--------|-------|
+| **Total deaths (2024)** | ~130,000 |
+| **Total humanitarian funding** | ~$14.2B |
+| **Average funding per death** | ~$109,000 |
+
+### **Underrated Conflicts** (Low Media Coverage)
+**Countries analyzed:** Ethiopia, Cameroon, Somalia, DRC, Mali
+
+| Metric | Value |
+|--------|-------|
+| **Total deaths (2024)** | ~24,000 |
+| **Total humanitarian funding** | ~$3.3B |
+| **Average funding per death** | ~$137,000 |
+
+> **Note:** While underrated conflicts actually show higher funding per death on average (driven by Somalia and Ethiopia receiving relatively substantial aid), the **individual country disparities** tell the real story. Cameroon receives $90K per death while Syria receives $408K—a 4.5× difference for conflicts with similar humanitarian needs.
+
+**The deeper issue:** Many high-casualty conflicts (Nigeria: 9,600 deaths, Burkina Faso: 7,500 deaths) receive minimal funding and fall completely outside the "prominent" discussion despite devastating human costs.
+
+---
+
+## 🌍 The Forgotten Crises
+
+These conflicts claim thousands of lives yet rarely make international headlines:
+
+### **Nigeria** 
+- **9,600 deaths in 2024** (4th deadliest globally)
+- Boko Haram insurgency, intercommunal violence
+- Minimal sustained international coverage despite decade-long crisis
+
+### **Burkina Faso**
+- **7,500 deaths in 2024** (5th deadliest)
+- Armed group insurgencies, government instability
+- Rarely mentioned in international media outside occasional reports
+
+### **Ethiopia**
+- **7,500 deaths in 2024**
+- Post-Tigray conflict regional violence continues
+- Severe displacement, but overshadowed by other crises
+
+### **Mali**
+- **4,000 deaths in 2024**
+- Ongoing insurgencies, French withdrawal impact
+- Chronically undercovered despite humanitarian severity
+
+### **Somalia**
+- **5,500 deaths in 2024**
+- Decades of Al-Shabab violence
+- Overshadowed by state-vs-state conflicts despite persistent crisis
+
+---
+
+## 🛠️ How This Analysis Works
 
 ### **Data Sources**
-1. **Conflict Deaths**: UCDP/ACLED regional aggregates
-   - Africa aggregated data (up to Aug 2025)
-   - Middle East aggregated data (up to Aug 2025)
-   - Europe-Central Asia aggregated data (up to Aug 2025)
+- **Conflict Deaths**: UCDP/ACLED regional conflict aggregates (Africa, Middle East, Europe-Central Asia)
+- **Humanitarian Funding**: OCHA Financial Tracking Service (official humanitarian response plans)
+- **Analysis Period**: 2024
 
-2. **Humanitarian Funding**: OCHA Financial Tracking Service
-   - Country-level humanitarian response plans
-   - Official funding reports for 2024
-
-### **Analysis Approach**
-1. Standardized country names across different data sources
-2. Aggregated conflict deaths by country for 2024
-3. Extracted country-level funding from OCHA plan titles
-4. Created visualizations comparing deaths and funding
-5. Calculated funding per death for each group
+### **Methodology**
+1. **Cleaned inconsistent country names** across UCDP, ACLED, and OCHA datasets
+2. **Aggregated deaths** by country for 2024 from three regional datasets
+3. **Extracted funding** from OCHA humanitarian response plan titles (English & French)
+4. **Calculated funding per death** for comparative analysis
+5. **Created visualizations** showing deaths, funding, and disparities
 
 ### **Technical Highlights**
-- **Data cleaning**: Built comprehensive country name normalization to handle inconsistencies across OCHA, ACLED, and World Bank datasets
-- **Parsing challenge**: Extracted country names from humanitarian plan titles using regex patterns for both English and French
-- **Missing data**: Transparently indicated countries with funding gaps rather than assuming zero
-- **Visualization**: Log-log scatter plot reveals relationship across orders of magnitude
-
-### **Country Groups**
-
-**Prominent (High Media Attention):**
-- Ukraine - Large-scale war since 2022
-- Russia - Involved in Ukraine conflict
-- Israel - Gaza war since October 2023
-- West Bank & Gaza - Ongoing humanitarian crisis
-- Sudan - Civil war with massive displacement
-- Syria - Long-running conflict
-
-**Underrated (Low Media Attention):**
-- Ethiopia - Post-Tigray regional violence
-- Somalia - Al-Shabab insurgency
-- Mali - Armed group insurgencies
-- DRC - Multiple conflicts beyond M23
-- Cameroon - Lake Chad region violence
+- **Country name normalization**: Handled 20+ variations (e.g., "DRC" vs "Congo, Dem. Rep." vs "Democratic Republic of the Congo")
+- **Plan title parsing**: Used regex to extract countries from humanitarian plan names in multiple languages
+- **Missing data handling**: Transparently marked countries without OCHA funding data rather than assuming zero
+- **Log-log visualization**: Appropriate for data spanning multiple orders of magnitude
 
 ---
 
-## 📂 Repository Structure
-
-```
-Conflict_and_Humanitarian_aid/
-├── conflict_aid_analysis.R              # Main analysis script
-├── figures/                             # All generated visualizations
-│   ├── scatter_deaths_vs_funding_2024.png
-│   ├── top10_deaths_2024.png
-│   ├── top10_funding_2024.png
-│   └── funding_per_death_groups_2024.png
-├── data/
-│   ├── ocha_funding.csv                 # OCHA funding data
-│   ├── Africa_aggregated_data.xlsx      # Regional death data
-│   ├── Middle-East_aggregated_data.xlsx
-│   └── Europe-Central-Asia_aggregated_data.xlsx
-└── README.md                            # This file
-```
-
----
-
-## 🚀 Quickstart
-
-### **Prerequisites**
-```r
-# Install required packages
-install.packages(c("tidyverse", "readxl", "janitor", "scales", "patchwork", "ggrepel"))
-```
-
-### **Run the Analysis**
-```r
-# Load and run the script
-source("conflict_aid_analysis.R")
-
-# Outputs will be created in figures/ folder:
-# - scatter_deaths_vs_funding_2024.png
-# - top10_deaths_2024.png
-# - top10_funding_2024.png
-# - funding_per_death_groups_2024.png
-```
-
----
-
-## 📈 What This Analysis Reveals
-
-### **1. Media Attention Drives Funding**
-Conflicts with high media coverage receive disproportionately more humanitarian aid per death than those with low coverage—even when death tolls are comparable.
-
-### **2. Systematic Inequity**
-Entire populations experiencing devastating loss receive far less visibility and resources simply because their crises don't dominate headlines.
-
-### **3. The Forgotten Crises**
-- **Ethiopia**: Ongoing intercommunal violence, severe displacement, minimal international coverage
-- **Mali & Burkina Faso**: Persistent insurgencies, massive civilian impact, rarely in headlines
-- **Eastern DRC**: Multiple overlapping conflicts, millions displaced, chronically underfunded
-- **Somalia**: Decades of Al-Shabab violence, overshadowed by state-vs-state wars
-
-### **4. Resource Allocation Patterns**
-When we only talk about certain conflicts, humanitarian responses mirror that attention. This creates a feedback loop where visibility determines funding, regardless of objective need metrics.
-
----
-
-## 💭 Personal Reflection
+## 💭 Why I Built This
 
 This was my **first international data project** outside of coursework for my MSBA at Georgetown.
 
-**The reality:** It took nearly a week of 8+ hour days to produce these visualizations—far longer than I expected. The challenge wasn't just the coding (learning to wrangle multiple data sources with inconsistent naming), but also the weight of what the numbers represent.
+**The reality behind the code:** It took nearly a week of full days to produce these visualizations. The challenge wasn't just technical (standardizing country names alone took hours), but emotional—every data point represents lives lost, and every funding gap represents real people not getting help they need.
 
-Every data point is a life lost. Every gap in funding represents real people not receiving help they need.
-
-While I'm fortunate to sit behind a laptop analyzing data, millions worldwide don't know when their next meal will come or where they'll find safety. That reality fueled every hour of this project.
+While I'm fortunate enough to sit behind a laptop analyzing data, millions worldwide don't know when their next meal will come or where they'll find safety. That reality fueled every hour of this project.
 
 **What I learned:**
-- Real-world data is messy (country names alone took hours to standardize)
-- Trial and error is part of the process (multiple approaches before finding what worked)
-- The story matters more than perfection (getting these insights out matters more than perfect code)
+- Real-world data is messy (international datasets use wildly different naming conventions)
+- Visualization choices matter (the funding-per-death chart tells the story more clearly than any table could)
+- The story matters more than perfection (getting these insights visible matters more than perfect code)
 
-This reflects my long-term goal: combining **data analytics and international affairs** to illuminate both challenges and opportunities in global humanitarian response.
+This reflects my long-term goal: **combining data analytics and international affairs** to illuminate both challenges and opportunities in global humanitarian response.
 
 ---
 
 ## 🌟 Why This Matters
 
-### **For Policymakers**
-- Reveals systematic gaps in resource allocation
-- Shows where needs aren't meeting funding
-- Provides data for evidence-based aid prioritization
-
 ### **For Humanitarian Organizations**
-- Identifies chronically underfunded crises
-- Supports advocacy for overlooked populations
-- Demonstrates scale of attention-vs-need misalignment
+→ Identifies chronically underfunded crises that need advocacy  
+→ Provides data for resource allocation discussions  
+→ Shows where media attention doesn't match human cost
+
+### **For Policymakers**
+→ Reveals systematic patterns in aid distribution  
+→ Highlights "forgotten crises" requiring intervention  
+→ Offers evidence-based framework for funding priorities
 
 ### **For the Public**
-- Highlights conflicts that don't make headlines
-- Challenges assumptions about where help is needed most
-- Connects media coverage to real-world consequences
+→ Challenges assumptions about where help is needed  
+→ Highlights conflicts that don't make headlines  
+→ Connects media coverage to real-world consequences
+
+### **For Me**
+→ Demonstrates ability to work with complex, multi-source datasets  
+→ Shows I can translate data into policy-relevant insights  
+→ Proves I can communicate findings to both technical and general audiences
 
 ---
 
-## ⚠️ Limitations & Caveats
+## ⚠️ Important Limitations
 
-### **Data Limitations**
-1. **Conflict death data**: 
-   - Based on reported deaths (actual tolls often higher)
-   - Different data sources use different methodologies
-   - Some conflicts have better reporting than others
+### **What This Analysis Captures**
+✅ Official OCHA humanitarian response plan funding  
+✅ Reported conflict deaths from UCDP/ACLED aggregates  
+✅ 2024 data (most recent available)
 
-2. **Funding data**:
-   - Only captures official humanitarian response plans
-   - Doesn't include bilateral aid or private donations
-   - Some countries may receive funding not reflected in OCHA data
+### **What It Misses**
+❌ **Bilateral aid** not channeled through OCHA plans  
+❌ **Private donations** and NGO funding outside official channels  
+❌ **Unreported deaths** (actual tolls often higher in areas with poor data)  
+❌ **Refugee costs** incurred in neighboring countries  
+❌ **Non-financial support** (peacekeeping, medical personnel, etc.)
 
-3. **Time lag**:
-   - Aid allocations can lag behind conflict escalation
-   - Data represents 2024 but situations evolve rapidly
+### **Methodological Caveats**
+- **"Prominent" vs "Underrated"**: Based on 2024 media coverage (observable but subjective)
+- **Funding per death**: Useful comparison metric but doesn't capture aid effectiveness or complexity
+- **Time lag**: Aid allocations can lag behind conflict escalation
+- **Regional aggregation**: Some conflicts span borders; attribution requires judgment calls
 
-### **Methodological Notes**
-1. **Country groupings**: "Prominent" vs "Underrated" based on 2024 media coverage (subjective but observable)
-2. **Funding per death**: Useful comparison metric but doesn't capture aid complexity
-3. **Regional aggregation**: Some conflicts span borders or regions
-
-### **What This Doesn't Show**
-- Aid effectiveness or outcomes
-- Historical funding trends over time
-- Non-financial humanitarian support
-- Refugee costs outside conflict zones
+**Bottom line:** This analysis reveals patterns, not definitive answers. It's a starting point for deeper questions about humanitarian resource allocation.
 
 ---
 
-## 📚 Data Sources & Citations
+## 🚀 Using This Analysis
 
-### **Conflict Deaths**
-- **UCDP (Uppsala Conflict Data Program)**: Battle-related deaths database
-- **ACLED**: Regional conflict event aggregates
-- Accessed: August 2025
+### **Quick Start**
+```r
+# Install required packages
+install.packages(c("tidyverse", "readxl", "janitor", "scales", "patchwork", "ggrepel"))
 
-### **Humanitarian Funding**
-- **OCHA Financial Tracking Service**: https://fts.unocha.org
-- Country-level humanitarian response plan funding
-- Data year: 2024
+# Run the analysis
+source("conflict_aid_analysis.R")
+
+# Outputs created in figures/ folder:
+# - top10_deaths_2024.png
+# - top10_funding_2024.png  
+# - scatter_deaths_vs_funding_2024.png
+# - funding_per_death_groups_2024.png
+```
+
+### **Repository Structure**
+```
+Conflict_and_Humanitarian_aid/
+├── conflict_aid_analysis.R          # Main analysis script
+├── figures/                          # All visualizations
+│   ├── top10_deaths_2024.png
+│   ├── top10_funding_2024.png
+│   ├── scatter_deaths_vs_funding_2024.png
+│   └── funding_per_death_groups_2024.png
+├── data/
+│   ├── ocha_funding.csv
+│   ├── Africa_aggregated_data.xlsx
+│   ├── Middle-East_aggregated_data.xlsx
+│   └── Europe-Central-Asia_aggregated_data.xlsx
+└── README.md                         # This file
+```
 
 ---
 
-## 🔗 Related Work
+## 🔗 Related Projects
 
 This is **Part 1** of my international affairs analytics portfolio:
 
-- **Part 1**: [Conflict & Humanitarian Aid](https://github.com/phoebelamb411/Conflict_and_Humanitarian_aid) ✅ (This project)
-- **Part 2**: [Paris Agreement Emissions Tracking](https://github.com/phoebelamb411/Paris_Agreement_Part_1) ✅
-- **Part 3**: [Climate Finance Fairness](https://github.com/phoebelamb411/Paris_Agreement_Part_2) ✅
+| Project | Focus | Status |
+|---------|-------|--------|
+| **[Conflict & Humanitarian Aid](https://github.com/phoebelamb411/Conflict_and_Humanitarian_aid)** | Resource allocation gaps | ✅ Complete |
+| **[Paris Agreement Part 1](https://github.com/phoebelamb411/Paris_Agreement_Part_1)** | Emissions vs targets | ✅ Complete |
+| **[Paris Agreement Part 2](https://github.com/phoebelamb411/Paris_Agreement_Part_2)** | Climate finance fairness | ✅ Complete |
+
+**What's Next:**
+- Global education access analysis
+- Peace agreement effectiveness study  
+- Public health international collaboration
 
 ---
 
-## 📜 License
+## 📚 Data & Methods
 
-Code: [MIT License](LICENSE)  
-Data: See individual source licenses (UCDP, OCHA, World Bank)
+### **Citations**
+- **Uppsala Conflict Data Program (UCDP)**: Battle-related deaths database
+- **Armed Conflict Location & Event Data (ACLED)**: Regional conflict event aggregates  
+- **OCHA Financial Tracking Service**: https://fts.unocha.org - Humanitarian funding data
+
+### **Transparency**
+- All code is open source and reproducible
+- Data cleaning steps fully documented in script
+- Missing data clearly indicated in visualizations
+- Assumptions explicitly stated in methodology
 
 ---
 
 ## 💬 Let's Discuss
 
-I'm building this portfolio to demonstrate how data analytics can drive accountability in international affairs. I'd love to hear:
+I built this analysis to demonstrate how data can drive accountability in international affairs. I'd love to hear:
 
-- **Your perspectives** on humanitarian resource allocation
-- **Data sources** I should explore
-- **Questions** this analysis raises for you
-- **Opportunities** to collaborate on similar work
+- Your perspective on humanitarian resource allocation
+- Additional data sources I should explore
+- Questions this analysis raises for you  
+- Opportunities to collaborate on similar work
 
 **Connect with me:**
-- 💼 [LinkedIn](https://www.linkedin.com/in/phoebelamb)
-- 📊 [GitHub](https://github.com/phoebelamb411)
+- 💼 [LinkedIn](https://www.linkedin.com/in/phoebelamb) - Where I share projects as I build them
+- 🐙 [GitHub](https://github.com/phoebelamb411) - All code and documentation
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **UCDP/ACLED** for maintaining accessible conflict data
+- **UCDP & ACLED** for maintaining accessible, rigorous conflict data
 - **OCHA** for transparent humanitarian funding reporting
-- **Georgetown MSBA program** for analytical foundation
-- **Everyone working in humanitarian response** on the ground
+- **Georgetown MSBA program** for the analytical foundation  
+- **Every humanitarian worker** responding to these crises on the ground
 
 ---
 
 <div align="center">
 
-*"When we only talk about certain conflicts, humanitarian responses mirror that attention.*  
-*But suffering doesn't always align with headlines."*
+**"When we only talk about certain conflicts, humanitarian responses mirror that attention.**  
+**But suffering doesn't always align with headlines."**
 
-**Building analytics for global awareness—one project at a time.**
+*Building analytics for global awareness—one project at a time.*
+
+---
+
+**⭐ If this analysis resonates with you, please star this repo and share it.**  
+**These stories deserve attention.**
 
 </div>
